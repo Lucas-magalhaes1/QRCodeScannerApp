@@ -6,10 +6,11 @@ import {
   StyleSheet,
   Linking,
   TouchableOpacity,
+  Share,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Share } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons"; // Ícones para o botão de compartilhar
 
 export default function Historico() {
   const router = useRouter();
@@ -42,22 +43,38 @@ export default function Historico() {
     }
   };
 
+  const compartilharQR = async (url) => {
+    try {
+      await Share.share({
+        message: `Confira este QR Code: ${url}`,
+      });
+    } catch (error) {
+      console.error("Erro ao compartilhar", error);
+    }
+  };
+
   const renderItem = ({ item }) => {
     const url = item.url || item;
     const timestamp = item.timestamp || "Sem data registrada";
 
     return (
       <View style={[styles.listItem, darkMode && styles.listItemDark]}>
-        <Text
-          style={[
-            styles.listText,
-            darkMode ? styles.listTextDark : styles.listTextLight,
-          ]}
-          onPress={() => Linking.openURL(url)}
-          onLongPress={() => Share.share({ message: url })}
-        >
-          {url}
-        </Text>
+        <View style={styles.linkContainer}>
+          <Text
+            style={[
+              styles.listText,
+              darkMode ? styles.listTextDark : styles.listTextLight,
+            ]}
+            onPress={() => Linking.openURL(url)}
+          >
+            {url}
+          </Text>
+
+          {/* Botão de Compartilhar */}
+          <TouchableOpacity onPress={() => compartilharQR(url)} style={styles.shareButton}>
+            <Ionicons name="share-social" size={22} color={darkMode ? "#4FA3E3" : "#007AFF"} />
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.timestamp, darkMode && styles.timestampDark]}>
           {timestamp}
         </Text>
@@ -151,10 +168,16 @@ const styles = StyleSheet.create({
   listItemDark: {
     backgroundColor: "#333",
   },
+  linkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   listText: {
     fontSize: 16,
     color: "#007AFF",
     textDecorationLine: "underline",
+    flex: 1,
   },
   listTextDark: {
     color: "#4FA3E3",
@@ -169,6 +192,9 @@ const styles = StyleSheet.create({
   },
   timestampDark: {
     color: "#ccc",
+  },
+  shareButton: {
+    padding: 5,
   },
   emptyText: {
     fontSize: 16,
